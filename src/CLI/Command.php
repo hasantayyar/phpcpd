@@ -99,6 +99,12 @@ class Command extends AbstractCommand
                  'Exclude a directory from code analysis (must be relative to source)'
              )
              ->addOption(
+                'filter-file',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Defines a file which contains a file filter.'
+            )
+             ->addOption(
                  'log-pmd',
                  null,
                  InputOption::VALUE_REQUIRED,
@@ -146,7 +152,8 @@ class Command extends AbstractCommand
             $input->getArgument('values'),
             $input->getOption('exclude'),
             $this->handleCSVOption($input, 'names'),
-            $this->handleCSVOption($input, 'names-exclude')
+            $this->handleCSVOption($input, 'names-exclude'),
+            $this->parseFileFilter($input)
         );
 
         $files = $finder->findFiles();
@@ -200,6 +207,17 @@ class Command extends AbstractCommand
         if (count($clones) > 0) {
             exit(1);
         }
+    }
+
+    private function parseFileFilter(InputInterface $input)
+    {
+        $filter = json_decode(file_get_contents($input->getOption('filter-file')), true);
+
+        if (is_array($filter)) {
+            return $filter;
+        }
+
+        return array();
     }
 
     /**
